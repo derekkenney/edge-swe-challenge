@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  executions:
+    image: wsumfest/execution-feed:v1
+    container_name: executions
+  sports:
+    image: wsumfest/sport-feed:v1
+    container_name: sports
+  nats:
+    image: nats:latest
+    ports:
+      - 4222:4222
