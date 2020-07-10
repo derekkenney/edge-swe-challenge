@@ -3,6 +3,7 @@ package pub
 import (
 	"encoding/json"
 	"log"
+	"sync"
 
 	"github.com/derekkenney/edge-swe-challenge/business/data/execution"
 	"github.com/derekkenney/edge-swe-challenge/business/data/sportsevent"
@@ -10,9 +11,14 @@ import (
 )
 
 func Pub(nc *nats.Conn, execution *execution.ExecutionSaveCommand, event *sportsevent.Event) {
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+
 	go publishExecution(nc, execution)
 	go publishSportEvent(nc, event)
 	log.Println("Published message to ", nats.DefaultURL)
+	wg.Done()
 }
 
 func publishExecution(nc *nats.Conn, execution *execution.ExecutionSaveCommand) {
