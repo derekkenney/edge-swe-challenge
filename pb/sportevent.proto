@@ -1,0 +1,40 @@
+syntax = "proto3";
+package pb;
+
+// protoc -I pb/ pb/sportevent.proto --go_out=plugins=grpc:pb
+
+service SportsEvent {
+    // Get all events for the given aggregate and event
+    rpc GetEvents(EventFilter) returns (Response) {}
+    // Create a new event to the event store
+    rpc CreateEvent (Event) returns (Response) {}
+}
+
+
+enum sport {
+  BASEBALL = 0;
+  BASKETBALL = 1;
+  FOOTBALL = 2;
+  BOXING = 3;
+  GOLF = 4;
+  NASCAR = 5;
+  TENNIS = 6;
+}
+
+
+message Event {
+  sport sport = 1;
+  string match_title = 2;
+  string data_event = 3;
+}
+
+message Response {
+    bool is_success = 1;
+    string error = 2;
+}
+
+message EventFilter {
+    string event_id = 1;
+    string aggregate_id = 2;
+}
+
