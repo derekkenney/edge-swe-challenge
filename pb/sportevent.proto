@@ -21,6 +21,12 @@ enum sport {
   TENNIS = 6;
 }
 
+message ChatMessage {
+  string email = 1;
+  string username = 2;
+  string message = 3;
+}
+
 
 message Event {
   sport sport = 1;

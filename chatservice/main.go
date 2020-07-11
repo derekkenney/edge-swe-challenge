@@ -4,20 +4,15 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/derekkenney/edge-swe-challenge/pb"
 	"github.com/gorilla/websocket"
 )
 
 var clients = make(map[*websocket.Conn]bool)
-var broadcast = make(chan Message)
+var broadcast = make(chan *pb.ChatMessage)
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
-}
-
-type Message struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Message  string `json:"message"`
 }
 
 func main() {
@@ -43,7 +38,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	clients[ws] = true
 
 	for {
-		var msg Message
+		var msg *pb.ChatMessage
 		// Read in a new message as JSON and map it to a Message object
 		err := ws.ReadJSON(&msg)
 		if err != nil {
@@ -52,6 +47,8 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		broadcast <- msg
+
+		//TODO: Persist reading a message to event store
 	}
 
 }
@@ -66,6 +63,8 @@ func handleMessages() {
 				client.Close()
 				delete(clients, client)
 			}
+
+			//TODO: Persist saving a message to event store
 		}
 	}
 }
