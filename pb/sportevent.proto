@@ -26,6 +26,16 @@ message Event {
   sport sport = 1;
   string match_title = 2;
   string data_event = 3;
+  int64 creation_date = 4;
+}
+
+message Execution {
+  string symbol = 1;
+  string market = 2;
+  float price = 3;
+  float quantity = 4;
+  int64 executionEpoch = 5;
+  string stateSymbol = 6;
 }
 
 message Response {
