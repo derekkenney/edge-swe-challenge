@@ -25,6 +25,8 @@ message ChatMessage {
   string email = 1;
   string username = 2;
   string message = 3;
+  int64 creation_date = 4;
+  string event_type = 5;
 }
 
 

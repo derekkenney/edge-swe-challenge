@@ -44,3 +44,16 @@ func (q *QueryStore) SaveExecutionEvent(executionEventMessage *pb.Execution) {
 
 	fmt.Println("Inserted a single document: ", insertResult.InsertedID)
 }
+
+func (q *QueryStore) SaveChatMessageEvent(chatMessage *pb.ChatMessage) {
+	log.Println("SaveChatMessageEvent()")
+	collection := q.mongoClient.Database("events").Collection("messages")
+
+	insertResult, err := collection.InsertOne(context.TODO(), chatMessage)
+	if err != nil {
+		log.Printf("SaveChatMessageEvent() error. Couldn't insert record to DB %v\n", err)
+		return
+	}
+
+	fmt.Println("Inserted a single document: ", insertResult.InsertedID)
+}
