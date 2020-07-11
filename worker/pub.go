@@ -26,6 +26,7 @@ func main() {
 
 	log.Println("Connected to NATS and ready to send messages")
 
+	// For sports events
 	sportChanSend := make(chan *pb.Event)
 	ec.BindSendChan("sport_event", sportChanSend)
 
@@ -45,6 +46,29 @@ func main() {
 		// Pause and increment counter
 		time.Sleep(time.Second * 1)
 		i = i + 1
+
+	}
+
+	// For executions
+	sportChanSend := make(chan *pb.Event)
+	ec.BindSendChan("sport_event", sportChanSend)
+
+	j := 0
+	for {
+		sportEventMessage := pb.Event{
+			Sport:        pb.Sport_BASKETBALL,
+			MatchTitle:   "March Madness",
+			DataEvent:    "March Madness event description",
+			CreationDate: time.Now().Unix(),
+		}
+
+		// Just send to the channel! :)
+		log.Printf("Sending request %d", j)
+		sportChanSend <- &sportEventMessage
+
+		// Pause and increment counter
+		time.Sleep(time.Second * 1)
+		j = j + 1
 
 	}
 }
