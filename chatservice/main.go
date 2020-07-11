@@ -11,28 +11,27 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var clients = make(map[*websocket.Conn]bool)
-var broadcast = make(chan *pb.ChatMessage)
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
-
 func main() {
 	fs := http.FileServer(http.Dir("../public"))
 	store := store.NewQueryStore(store.NewMongoClient())
+	upgrader := websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+	}
+	clients := make(map[*websocket.Conn]bool)
+	broadcast := make(chan *pb.ChatMessage)
 
 	http.Handle("/", fs)
-	http.Handle("/ws", handleConnections(store))
+	http.Handle("/ws", handleConnections(store, &upgrader, clients, broadcast))
 
-	go handleMessages(store)
+	go handleMessages(store, &upgrader, clients, broadcast)
 
 	log.Println("http server started on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 
 }
 
-func handleConnections(store *store.QueryStore) http.Handler {
+func handleConnections(store *store.QueryStore, upgrader *websocket.Upgrader, clients map[*websocket.Conn]bool, broadcast chan *pb.ChatMessage) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ws, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
@@ -61,7 +60,7 @@ func handleConnections(store *store.QueryStore) http.Handler {
 	})
 }
 
-func handleMessages(store *store.QueryStore) {
+func handleMessages(store *store.QueryStore, upgrader *websocket.Upgrader, clients map[*websocket.Conn]bool, broadcast chan *pb.ChatMessage) {
 	for {
 		msg := <-broadcast
 		for client := range clients {
