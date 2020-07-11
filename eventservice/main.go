@@ -9,12 +9,11 @@ import (
 	//"github.com/derekkenney/edge-swe-challenge/store"
 
 	nats "github.com/nats-io/nats.go"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func main() {
 	mongoClient := store.NewMongoClient()
-
+	store := store.NewQueryStore(mongoClient)
 	// Connect to NATS server
 	nc, err := nats.Connect(nats.DefaultURL)
 
@@ -32,23 +31,16 @@ func main() {
 
 	sportChanRecv := make(chan *pb.Event)
 	ec.BindRecvChan("sport_event", sportChanRecv)
-
-	//sub(natsConnection)
-	//saveMessage(mongoClient, response)
-	// Wait for incoming messages
+	executionChanRecv := make(chan *pb.Execution)
+	ec.BindRecvChan("execution", executionChanRecv)
 
 	for {
 		// Wait for incoming messages
-		req := <-sportChanRecv
-		log.Printf("Received request: %v", req)
+		sportReq := <-sportChanRecv
+		executionReq := <-executionChanRecv
 
 		// Will execute each function call concurrently in own thread
-		go saveMessage(mongoClient, req)
+		go store.SaveSportEvent(sportReq)
+		go store.SaveExecutionEvent(executionReq)
 	}
-}
-func saveMessage(mongoClient *mongo.Client, event *pb.Event) {
-	log.Println("saveMessage()")
-
-	store := store.NewQueryStore(mongoClient)
-	store.SaveSportEvent(event)
 }
