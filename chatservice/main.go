@@ -13,7 +13,8 @@ import (
 
 func main() {
 	fs := http.FileServer(http.Dir("../public"))
-	store := store.NewQueryStore(store.NewMongoClient())
+	store := store.ChatQueryStore{
+		Client: store.NewMongoClient()}
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -22,16 +23,16 @@ func main() {
 	broadcast := make(chan *pb.ChatMessage)
 
 	http.Handle("/", fs)
-	http.Handle("/ws", handleConnections(store, &upgrader, clients, broadcast))
+	http.Handle("/ws", handleConnections(&store, &upgrader, clients, broadcast))
 
-	go handleMessages(store, &upgrader, clients, broadcast)
+	go handleMessages(&store, &upgrader, clients, broadcast)
 
 	log.Println("http server started on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 
 }
 
-func handleConnections(store *store.QueryStore, upgrader *websocket.Upgrader, clients map[*websocket.Conn]bool, broadcast chan *pb.ChatMessage) http.Handler {
+func handleConnections(store *store.ChatQueryStore, upgrader *websocket.Upgrader, clients map[*websocket.Conn]bool, broadcast chan *pb.ChatMessage) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ws, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
@@ -55,12 +56,12 @@ func handleConnections(store *store.QueryStore, upgrader *websocket.Upgrader, cl
 			//TODO: Persist reading a message to event store
 			msg.CreationDate = time.Now().Unix()
 			msg.EventType = "read_message"
-			store.SaveChatMessageEvent(msg)
+			store.Save()
 		}
 	})
 }
 
-func handleMessages(store *store.QueryStore, upgrader *websocket.Upgrader, clients map[*websocket.Conn]bool, broadcast chan *pb.ChatMessage) {
+func handleMessages(store *store.ChatQueryStore, upgrader *websocket.Upgrader, clients map[*websocket.Conn]bool, broadcast chan *pb.ChatMessage) {
 	for {
 		msg := <-broadcast
 		for client := range clients {
@@ -74,7 +75,7 @@ func handleMessages(store *store.QueryStore, upgrader *websocket.Upgrader, clien
 			//TODO: Persist writing a message to event store
 			msg.CreationDate = time.Now().Unix()
 			msg.EventType = "write_message"
-			store.SaveChatMessageEvent(msg)
+			store.Save()
 		}
 	}
 }

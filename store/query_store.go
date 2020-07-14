@@ -30,12 +30,11 @@ type ChatQueryStore struct {
 
 // Save sport events to data store
 func (q *SportQueryStore) Save() {
-	log.Println("SaveSportEvent()")
 	collection := q.Client.Database("events").Collection("sports")
 
 	insertResult, err := collection.InsertOne(context.TODO(), q.Event)
 	if err != nil {
-		log.Printf("SaveSportEvent() error. Couldn't insert record to DB %v\n", err)
+		log.Printf("Save() error. Couldn't insert record to DB %v\n", err)
 		return
 	}
 
@@ -44,12 +43,11 @@ func (q *SportQueryStore) Save() {
 
 // Save() Persists execution message to DB
 func (q *ExecutionQueryStore) Save() {
-	log.Println("SaveExecutionEvent()")
 	collection := q.Client.Database("events").Collection("executions")
 
 	insertResult, err := collection.InsertOne(context.TODO(), q.Execution)
 	if err != nil {
-		log.Printf("SaveExecutionEvent() error. Couldn't insert record to DB %v\n", err)
+		log.Printf("Save() error. Couldn't insert record to DB %v\n", err)
 		return
 	}
 
@@ -58,14 +56,12 @@ func (q *ExecutionQueryStore) Save() {
 
 // Save() Persists chat messages to DB
 func (q *ChatQueryStore) Save() {
-	log.Println("SaveChatMessageEvent()")
 	collection := q.Client.Database("events").Collection("messages")
 
 	insertResult, err := collection.InsertOne(context.TODO(), q.Message)
 	if err != nil {
-		log.Printf("SaveChatMessageEvent() error. Couldn't insert record to DB %v\n", err)
+		log.Printf("Save() error. Couldn't insert record to DB %v\n", err)
 		return
 	}
-
 	fmt.Println("Inserted a single document: ", insertResult.InsertedID)
 }

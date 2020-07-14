@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+	var test string
 	mongoClient := store.NewMongoClient()
 	sportStore := store.SportQueryStore{
 		Client: mongoClient,
