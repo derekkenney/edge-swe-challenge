@@ -13,7 +13,13 @@ import (
 
 func main() {
 	mongoClient := store.NewMongoClient()
-	store := store.NewQueryStore(mongoClient)
+	sportStore := store.SportQueryStore{
+		Client: mongoClient,
+	}
+	executionStore := store.ExecutionQueryStore{
+		Client: mongoClient,
+	}
+
 	// Connect to NATS server
 	nc, err := nats.Connect(nats.DefaultURL)
 
@@ -36,11 +42,14 @@ func main() {
 
 	for {
 		// Wait for incoming messages
-		sportReq := <-sportChanRecv
-		executionReq := <-executionChanRecv
+		sportEvent := <-sportChanRecv
+		executionEvent := <-executionChanRecv
 
 		// Will execute each function call concurrently in own thread
-		go store.SaveSportEvent(sportReq)
-		go store.SaveExecutionEvent(executionReq)
+		sportStore.Event = sportEvent
+		executionStore.Execution = executionEvent
+
+		go sportStore.Save()
+		go executionStore.Save()
 	}
 }
